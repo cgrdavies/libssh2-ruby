@@ -8,22 +8,17 @@ dir_config("libssh2")
 # this extension to compile properly. "asplode" seems to be the
 # idiomatic Ruby name for this method.
 def asplode(missing)
-  abort "#{missing} is missing. Please install libssh2."
+  abort "#{missing} is missing."
 end
 
 # Verify that we have libssh2
 asplode("libssh2.h") if !find_header("libssh2.h")
 
-# On Mac OS X, we can't actually statically compile a 64-bit version
-# of OpenSSL, so we just link against the shared versions as well.
-# Kind of a hack but it works fine.
-if RbConfig::CONFIG["host_os"] =~ /^darwin/
-  asplode("libcrypto") if !find_library("crypto", "CRYPTO_num_locks")
-  asplode("openssl")   if !find_library("ssl", "SSL_library_init")
-end
+have_header("openssl/ssl.h") && find_library("ssl", "SSL_new") || asplode('openssl not found')
+find_library("crypto", "CRYPTO_malloc") || asplode('libcrypto not found')
 
 # Verify libssh2 is usable
-asplode("libssh2")   if !find_library("ssh2", "libssh2_init")
+asplode("libssh2") if !find_library("ssh2", "libssh2_init")
 
 # Create the makefile with the expected library name.
-create_makefile("libssh2_ruby_c")
+create_makefile('libssh2_ruby_c')

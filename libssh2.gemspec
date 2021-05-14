@@ -25,4 +25,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency "rspec-expectations", "~> 2.8.0"
   s.add_development_dependency "rspec-mocks", "~> 2.8.0"
   s.add_development_dependency "yard", "~> 0.7.5"
+  s.add_runtime_dependency "mini_portile2", ">= 2.5.0"
 end
