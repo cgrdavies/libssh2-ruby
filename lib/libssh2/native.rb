@@ -54,5 +54,9 @@ module LibSSH2
     proxy_method :channel, :read, Native::Channel
     proxy_method :channel, :read_ex, Native::Channel
     proxy_method :channel, :wait_closed, Native::Channel
+
+    def self.sftp_init(session)
+      Native::SftpSession.new(session)
+    end
   end
 end

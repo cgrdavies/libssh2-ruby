@@ -1,7 +1,7 @@
-require "mini_portile"
+require "mini_portile2"
 require "rake/extensioncompiler"
 
-libssh2_version = "1.4.0"
+libssh2_version = "1.9.0"
 openssl_version = "1.0.1"
 
 $recipes = {}

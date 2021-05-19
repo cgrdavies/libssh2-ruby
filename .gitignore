@@ -1,6 +1,7 @@
 *.bundle
 *.gem
 *.so
+*.o
 .bundle
 .yardoc/
 doc/

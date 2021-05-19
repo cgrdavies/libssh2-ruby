@@ -3,6 +3,7 @@
 
 #include <ruby.h>
 #include <libssh2.h>
+#include <libssh2_sftp.h>
 
 /*
  * Makes the otherwise non-blocking libssh2 method call
@@ -46,6 +47,8 @@ extern VALUE rb_mLibSSH2_Native;
 extern VALUE rb_mLibSSH2_Native_Error;
 extern VALUE rb_cLibSSH2_Native_Channel;
 extern VALUE rb_cLibSSH2_Native_Session;
+extern VALUE rb_cLibSSH2_Native_SftpSession;
+
 
 /*
  * The struct embedded with LibSSH2::Native::Session classes
@@ -64,10 +67,19 @@ typedef struct {
     LibSSH2_Ruby_Session *session;
 } LibSSH2_Ruby_Channel;
 
+/*
+ * The struct embedded with LibSSH2::Native::Sftp classes.
+ * */
+typedef struct {
+    LIBSSH2_SFTP *sftp_session;
+    LibSSH2_Ruby_Session *ssh_session;
+} LibSSH2_Ruby_SftpSession;
+
 void init_libssh2_error();
 void init_libssh2_global();
 void init_libssh2_channel();
 void init_libssh2_session();
+void init_libssh2_sftp_session();
 
 void libssh2_ruby_session_retain(LibSSH2_Ruby_Session *);
 void libssh2_ruby_session_release(LibSSH2_Ruby_Session *);

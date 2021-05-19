@@ -12,8 +12,7 @@ describe "channels" do
   let(:channel) { authed_session.open_channel }
 
   it "can't open a channel before authenticating" do
-    expect { session.open_channel }.to
-      raise_error(LibSSH2::AuthenticationRequired)
+    expect { session.open_channel }.to raise_error(LibSSH2::AuthenticationRequired)
   end
 
   it "can open a channel once authenticated" do
