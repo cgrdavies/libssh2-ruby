@@ -78,8 +78,101 @@ sftp_initialize(VALUE self, VALUE rb_session) {
     return self;
 }
 
+ /*
+ * Helpers to return the LIBSSH2_SFTP for the given instance.
+ * */
+static inline LIBSSH2_SFTP *
+get_sftp(VALUE self) {
+    LibSSH2_Ruby_SftpSession *session_data;
+    Data_Get_Struct(self, LibSSH2_Ruby_SftpSession, session_data);
+    return session_data->sftp_session;
+}
+
+static inline LIBSSH2_SESSION *
+get_session(VALUE self) {
+    LibSSH2_Ruby_SftpSession *session_data;
+    Data_Get_Struct(self, LibSSH2_Ruby_SftpSession, session_data);
+    return session_data->ssh_session -> session;
+}
+
+// static VALUE
+// open_file(VALUE self, VALUE path) {
+//     LIBSSH2_SFTP_HANDLE *sftp_handle;
+
+//     rb_check_type(path, T_STRING);
+
+//     libssh2_session_set_blocking(get_session(self), 1);
+
+//     sftp_handle = libssh2_sftp_open(get_sftp(self), RSTRING_PTR(path), LIBSSH2_FXF_WRITE|LIBSSH2_FXF_CREAT|LIBSSH2_FXF_TRUNC, LIBSSH2_SFTP_S_IRWXU);
+
+//     if(!sftp_handle) {
+//         int error = libssh2_session_last_error(get_session(self), NULL, NULL, 0);
+//         if (error != NULL) {
+//             rb_exc_raise(libssh2_ruby_wrap_error(error));
+//             return Qnil;
+//         }        
+            
+//         return Qnil;
+//     }
+
+//     return INT2NUM(sftp_handle);
+// }
+
+static VALUE
+upload_file(VALUE self, VALUE local_path, VALUE remote_path) {
+    LIBSSH2_SFTP_HANDLE *sftp_handle;
+    FILE *local_file;
+    char mem[1024*100];
+    size_t nread;
+    char *ptr;
+    int rc;
+
+    rb_check_type(remote_path, T_STRING);
+    rb_check_type(local_path, T_STRING);
+
+    libssh2_session_set_blocking(get_session(self), 1);
+
+    sftp_handle = libssh2_sftp_open(get_sftp(self), 
+                                    RSTRING_PTR(remote_path), 
+                                    LIBSSH2_FXF_WRITE|LIBSSH2_FXF_CREAT|LIBSSH2_FXF_TRUNC, LIBSSH2_SFTP_S_IRWXU);
+
+    if(!sftp_handle) {
+        int error = libssh2_session_last_error(get_session(self), NULL, NULL, 0);
+        if (error) {
+            rb_exc_raise(libssh2_ruby_wrap_error(error));
+        }                    
+    }
+
+    local_file = fopen(RSTRING_PTR(local_path), "rb");
+
+    do {
+        nread = fread(mem, 1, sizeof(mem), local_file);
+        if(nread <= 0) {
+            /* end of file */ 
+            break;
+        }
+        ptr = mem;
+
+        do {
+            /* write data in a loop until we block */ 
+            rc = libssh2_sftp_write(sftp_handle, ptr, nread);
+
+            if(rc < 0)
+                break;
+            ptr += rc;
+            nread -= rc;
+        } while(nread);
+
+
+    } while(rc > 0);
+
+    return Qnil;
+}
+
 void init_libssh2_sftp_session() {
     VALUE cSftpSession = rb_cLibSSH2_Native_SftpSession;
     rb_define_alloc_func(cSftpSession, sftp_allocate);
     rb_define_method(cSftpSession, "initialize", sftp_initialize, 1);
+    rb_define_method(cSftpSession, "upload_file", upload_file, 2);
+
 }
